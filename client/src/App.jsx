@@ -3,6 +3,12 @@ import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 import { WishlistProvider } from './context/WishlistContext';
 import Navbar from './components/Navbar';
+import ProtectedRoute from './components/ProtectedRoute';
+import AdminRoute from './components/AdminRoute';
+import PageParallax from './components/PageParallax';
+import ScrollToTop from './components/ScrollToTop';
+import { Toaster } from 'react-hot-toast';
+
 import Home from './pages/Home';
 import Shop from './pages/Shop';
 import ProductDetails from './pages/ProductDetails';
@@ -15,9 +21,7 @@ import Signup from './pages/Signup';
 import Profile from './pages/Profile';
 import Orders from './pages/Orders';
 import Settings from './pages/Settings';
-import PageParallax from './components/PageParallax';
-import { Toaster } from 'react-hot-toast';
-// import './App.css';
+import AdminDashboard from './pages/AdminDashboard';
 
 function App() {
   return (
@@ -25,21 +29,31 @@ function App() {
       <CartProvider>
         <WishlistProvider>
           <Router>
-            <Toaster position="bottom-right" toastOptions={{ duration: 4000, style: { background: '#333', color: '#fff' } }} />
+            <ScrollToTop />
+            <Toaster
+              position="bottom-right"
+              toastOptions={{ duration: 4000, style: { background: '#333', color: '#fff' } }}
+            />
             <Navbar />
             <Routes>
+              {/* Public routes */}
               <Route path="/" element={<PageParallax><Home /></PageParallax>} />
               <Route path="/shop" element={<PageParallax><Shop /></PageParallax>} />
               <Route path="/product/:id" element={<PageParallax><ProductDetails /></PageParallax>} />
-              <Route path="/cart" element={<PageParallax><Cart /></PageParallax>} />
-              <Route path="/wishlist" element={<PageParallax><Wishlist /></PageParallax>} />
               <Route path="/about" element={<PageParallax><About /></PageParallax>} />
               <Route path="/contact" element={<PageParallax><Contact /></PageParallax>} />
               <Route path="/login" element={<PageParallax><Login /></PageParallax>} />
               <Route path="/signup" element={<PageParallax><Signup /></PageParallax>} />
-              <Route path="/profile" element={<PageParallax><Profile /></PageParallax>} />
-              <Route path="/orders" element={<PageParallax><Orders /></PageParallax>} />
-              <Route path="/settings" element={<PageParallax><Settings /></PageParallax>} />
+
+              {/* Protected routes — redirect to /login if not authenticated */}
+              <Route path="/cart" element={<ProtectedRoute><PageParallax><Cart /></PageParallax></ProtectedRoute>} />
+              <Route path="/wishlist" element={<ProtectedRoute><PageParallax><Wishlist /></PageParallax></ProtectedRoute>} />
+              <Route path="/profile" element={<ProtectedRoute><PageParallax><Profile /></PageParallax></ProtectedRoute>} />
+              <Route path="/orders" element={<ProtectedRoute><PageParallax><Orders /></PageParallax></ProtectedRoute>} />
+              <Route path="/settings" element={<ProtectedRoute><PageParallax><Settings /></PageParallax></ProtectedRoute>} />
+
+              {/* Admin-only route */}
+              <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
             </Routes>
           </Router>
         </WishlistProvider>

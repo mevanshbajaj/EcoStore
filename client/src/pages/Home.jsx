@@ -2,9 +2,11 @@ import { useEffect, useState } from 'react';
 import { motion, useScroll, useTransform, useSpring } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { Link } from 'react-router-dom';
-import { FaLeaf, FaRecycle, FaTruck } from 'react-icons/fa';
+import { FaLeaf, FaRecycle, FaTruck, FaShoppingCart } from 'react-icons/fa';
 import Counter from '../animations/Counter';
 import Footer from '../components/Footer';
+import { api } from '../services/api';
+import ProductCard from '../components/ProductCard';
 
 const Home = () => {
   const [products, setProducts] = useState([]);
@@ -33,9 +35,9 @@ const Home = () => {
   const smoothYText = useSpring(yText, springConfig);
 
   useEffect(() => {
-    fetch('http://localhost:5002/api/products')
-      .then(res => res.json())
-      .then(data => setProducts(data.slice(0, 3)));
+    api.get('/api/products?limit=3&sortBy=newest')
+      .then(data => setProducts(data.products || []))
+      .catch(() => {});
   }, []);
 
   return (
@@ -204,24 +206,41 @@ const Home = () => {
       </section>
 
       {/* Featured Products */}
-      <section className="py-16 bg-white">
+      <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-8">Featured Products</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {products.map(product => (
-              <motion.div
-                key={product.id}
-                whileHover={{ scale: 1.05 }}
-                className="bg-gray-50 rounded-lg shadow-md p-6"
-              >
-                <img src={product.image} alt={product.name} className="w-full h-48 object-cover mb-4 rounded" />
-                <h3 className="text-xl font-semibold mb-2">{product.name}</h3>
-                <p className="text-gray-600 mb-4">₹{product.price}</p>
-                <Link to={`/product/${product.id}`} className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition">
-                  View Details
-                </Link>
-              </motion.div>
-            ))}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-12"
+          >
+            <span className="inline-block px-4 py-1.5 bg-green-100 text-green-700 rounded-full text-sm font-semibold mb-4">
+              🌿 Handpicked for You
+            </span>
+            <h2 className="text-4xl font-bold text-gray-900 mb-3">Featured Products</h2>
+            <p className="text-gray-500 max-w-xl mx-auto">
+              Bestsellers this week — each certified sustainable and loved by our community.
+            </p>
+          </motion.div>
+
+          {products.length === 0 ? (
+            <div className="text-center py-12 text-gray-400">Loading featured products…</div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {products.map(product => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
+          )}
+
+          <div className="text-center mt-10">
+            <Link
+              to="/shop"
+              className="inline-flex items-center gap-2 px-8 py-3.5 bg-gradient-to-r from-green-500 to-blue-500 text-white rounded-full font-semibold hover:from-green-600 hover:to-blue-600 shadow-lg hover:shadow-xl transition-all"
+            >
+              <FaShoppingCart />
+              Browse All {' '} Products
+            </Link>
           </div>
         </div>
       </section>

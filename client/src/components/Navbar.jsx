@@ -1,6 +1,6 @@
 import { useContext, useEffect, useRef, useState } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { FaShoppingCart, FaUser, FaBars, FaTimes, FaSearch, FaHeart, FaCog, FaSignOutAlt, FaUserCircle } from 'react-icons/fa';
+import { FaShoppingCart, FaUser, FaBars, FaTimes, FaSearch, FaHeart, FaCog, FaSignOutAlt, FaUserCircle, FaUserShield } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CartContext } from '../context/CartContext';
 import { AuthContext } from '../context/AuthContext';
@@ -245,6 +245,16 @@ const Navbar = () => {
                         <FaCog className="mr-3 text-purple-500" />
                         Settings
                       </Link>
+                      {user?.role === 'admin' && (
+                        <Link
+                          to="/admin"
+                          className="flex items-center px-4 py-3 text-sm text-white bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 transition-all duration-200 rounded-lg mx-2 font-semibold shadow-sm mt-1"
+                          onClick={() => setShowUserMenu(false)}
+                        >
+                          <FaUserShield className="mr-3" />
+                          Admin Panel
+                        </Link>
+                      )}
                       <div className="border-t border-gray-200/50 my-2 mx-2"></div>
                       <button
                         onClick={handleLogout}
@@ -387,6 +397,16 @@ const Navbar = () => {
                       <FaCog className="mr-3 text-purple-500" />
                       Settings
                     </Link>
+                    {user?.role === 'admin' && (
+                      <Link
+                        to="/admin"
+                        className="flex items-center w-full px-4 py-3 text-white bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 transition-all duration-300 rounded-2xl font-semibold shadow-sm"
+                        onClick={toggleMenu}
+                      >
+                        <FaUserShield className="mr-3" />
+                        Admin Panel
+                      </Link>
+                    )}
                     <button
                       onClick={() => { handleLogout(); toggleMenu(); }}
                       className="flex items-center w-full px-4 py-3 text-red-600 hover:bg-gradient-to-r hover:from-red-50 hover:to-pink-50 hover:text-red-700 transition-all duration-300 rounded-2xl"

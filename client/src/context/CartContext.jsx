@@ -1,51 +1,60 @@
-import { createContext, useState, useEffect } from 'react';
+import { createContext, useState, useEffect, useContext, useCallback } from 'react';
 import toast from 'react-hot-toast';
+import { AuthContext } from './AuthContext';
+import { api } from '../services/api';
 
 export const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
   const [cart, setCart] = useState([]);
+  const { user } = useContext(AuthContext);
 
-  useEffect(() => {
-    // Load cart from API
-    fetch('http://localhost:5002/api/cart')
-      .then(res => res.json())
-      .then(data => setCart(data))
-      .catch(() => setCart([]));
-  }, []);
+  const fetchCart = useCallback(async () => {
+    if (!user?.token) { setCart([]); return; }
+    try {
+      const data = await api.get('/api/cart');
+      setCart(data);
+    } catch {
+      setCart([]);
+    }
+  }, [user]);
 
-  const addToCart = async (product, quantity) => {
-    const response = await fetch('http://localhost:5002/api/cart/add', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ productId: product.id, quantity }),
-    });
-    const updatedCart = await response.json();
-    setCart(updatedCart);
-    toast.success(`${product.name} added to cart!`);
+  useEffect(() => { fetchCart(); }, [fetchCart]);
+
+  const addToCart = async (product, quantity = 1) => {
+    if (!user?.token) { toast.error('Please login to add to cart'); return; }
+    try {
+      const updatedCart = await api.post('/api/cart/add', { productId: product.id || product._id, quantity });
+      setCart(updatedCart);
+      toast.success(`${product.name} added to cart!`);
+    } catch (err) {
+      toast.error(err.message || 'Failed to add to cart.');
+    }
   };
 
   const removeFromCart = async (id) => {
-    const response = await fetch(`http://localhost:5002/api/cart/${id}`, {
-      method: 'DELETE',
-    });
-    const updatedCart = await response.json();
-    setCart(updatedCart);
-    toast.success('Item removed from cart');
+    try {
+      const updatedCart = await api.delete(`/api/cart/${id}`);
+      setCart(updatedCart);
+      toast.success('Item removed from cart.');
+    } catch (err) {
+      toast.error(err.message || 'Failed to remove item.');
+    }
   };
 
   const updateQuantity = async (id, quantity) => {
-    const response = await fetch('http://localhost:5002/api/cart/update', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ productId: id, quantity }),
-    });
-    const updatedCart = await response.json();
-    setCart(updatedCart);
+    try {
+      const updatedCart = await api.put('/api/cart/update', { productId: id, quantity });
+      setCart(updatedCart);
+    } catch (err) {
+      toast.error(err.message || 'Failed to update quantity.');
+    }
   };
 
+  const clearCart = () => setCart([]);
+
   return (
-    <CartContext.Provider value={{ cart, addToCart, removeFromCart, updateQuantity }}>
+    <CartContext.Provider value={{ cart, addToCart, removeFromCart, updateQuantity, clearCart, fetchCart }}>
       {children}
     </CartContext.Provider>
   );

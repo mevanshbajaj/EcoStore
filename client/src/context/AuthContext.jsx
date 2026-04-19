@@ -1,60 +1,60 @@
 import { createContext, useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
+import { api } from '../services/api';
 
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
-      setUser(JSON.parse(storedUser));
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch {
+        localStorage.removeItem('user');
+      }
     }
+    setAuthLoading(false);
   }, []);
 
+  const persistUser = (userData) => {
+    setUser(userData);
+    localStorage.setItem('user', JSON.stringify(userData));
+  };
+
   const login = async (email, password) => {
-    const response = await fetch('http://localhost:5002/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    });
-    const data = await response.json();
-    if (response.ok) {
-      setUser(data.user);
-      localStorage.setItem('user', JSON.stringify(data.user));
-      toast.success(`Welcome back, ${data.user.name.split(' ')[0]}!`);
-    } else {
-      toast.error(data.message || 'Login failed');
-    }
+    const data = await api.post('/api/auth/login', { email, password });
+    persistUser(data.user);
+    toast.success(`Welcome back, ${data.user.name.split(' ')[0]}!`);
     return data;
   };
 
   const signup = async (name, email, password) => {
-    const response = await fetch('http://localhost:5002/api/auth/signup', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, email, password }),
-    });
-    const data = await response.json();
-    if (response.ok) {
-      setUser(data.user);
-      localStorage.setItem('user', JSON.stringify(data.user));
-      toast.success(`Account created successfully! Welcome, ${data.user.name.split(' ')[0]}!`);
-    } else {
-      toast.error(data.message || 'Signup failed');
-    }
+    const data = await api.post('/api/auth/signup', { name, email, password });
+    persistUser(data.user);
+    toast.success(`Welcome to EcoStore, ${data.user.name.split(' ')[0]}!`);
+    return data;
+  };
+
+  const updateProfile = async (name) => {
+    const data = await api.put('/api/auth/profile', { name });
+    persistUser(data);
+    toast.success('Profile updated!');
     return data;
   };
 
   const logout = () => {
     setUser(null);
     localStorage.removeItem('user');
-    toast.success('Logged out safely. See you soon!');
+    localStorage.removeItem('wishlist');
+    toast.success('Logged out. See you soon!');
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, signup, logout }}>
+    <AuthContext.Provider value={{ user, authLoading, login, signup, logout, updateProfile }}>
       {children}
     </AuthContext.Provider>
   );

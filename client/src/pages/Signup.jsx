@@ -7,6 +7,7 @@ import { AuthContext } from '../context/AuthContext';
 const Signup = () => {
   const [form, setForm] = useState({ name: '', email: '', password: '', confirmPassword: '' });
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const { signup } = useContext(AuthContext);
@@ -14,178 +15,111 @@ const Signup = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (form.password !== form.confirmPassword) {
-      setError('Passwords do not match');
-      return;
-    }
-    const result = await signup(form.name, form.email, form.password);
-    if (result.message === 'Signup successful') {
+    setError('');
+    if (form.password !== form.confirmPassword) { setError('Passwords do not match.'); return; }
+    if (form.password.length < 6) { setError('Password must be at least 6 characters.'); return; }
+    setLoading(true);
+    try {
+      await signup(form.name, form.email, form.password);
       navigate('/');
-    } else {
-      setError(result.message);
+    } catch (err) {
+      setError(err.message || 'Signup failed. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div className="min-h-screen flex">
-      {/* Left side - Image */}
+      {/* Left - Image */}
       <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden">
-        <motion.div
-          initial={{ scale: 1.1 }}
-          animate={{ scale: 1 }}
-          transition={{ duration: 0.8 }}
-          className="absolute inset-0"
-        >
-          <img
-            src="https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=1920&h=1080&fit=crop"
-            alt="Eco-friendly products"
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-blue-600 bg-opacity-40"></div>
+        <motion.div initial={{ scale: 1.1 }} animate={{ scale: 1 }} transition={{ duration: 0.8 }} className="absolute inset-0">
+          <img src="https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=1920&h=1080&fit=crop" alt="Eco products" className="w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-600/50 to-purple-600/40" />
         </motion.div>
         <div className="relative z-10 flex items-center justify-center w-full p-12">
-          <motion.div
-            initial={{ opacity: 0, x: -50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8, delay: 0.3 }}
-            className="text-white text-center"
-          >
+          <motion.div initial={{ opacity: 0, x: -50 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8, delay: 0.3 }} className="text-white text-center">
+            <span className="inline-block p-4 bg-white/20 backdrop-blur-sm rounded-full text-4xl mb-6">🌍</span>
             <h1 className="text-4xl font-bold mb-4">Join EcoStore</h1>
-            <p className="text-xl">Start your sustainable shopping journey today</p>
+            <p className="text-xl text-white/90">Start your sustainable shopping journey today</p>
           </motion.div>
         </div>
       </div>
 
-      {/* Right side - Form */}
+      {/* Right - Form */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-gray-50">
-        <motion.div
-          initial={{ opacity: 0, y: 50 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md"
-        >
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="text-center mb-8"
-          >
+        <motion.div initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md">
+          <div className="text-center mb-8">
             <h2 className="text-3xl font-bold text-gray-800 mb-2">Create Account</h2>
             <p className="text-gray-600">Join the eco-friendly community</p>
-          </motion.div>
+          </div>
 
           {error && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg mb-6"
-            >
+            <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg mb-6 text-sm">
               {error}
             </motion.div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
-              <div className="relative">
-                <FaUser className="absolute left-3 top-3 text-gray-400" />
-                <motion.input
-                  type="text"
-                  value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                  placeholder="Enter your full name"
-                  required
-                  whileFocus={{ scale: 1.02 }}
-                />
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {[
+              { label: 'Full Name', key: 'name', type: 'text', icon: <FaUser />, placeholder: 'Enter your full name' },
+              { label: 'Email Address', key: 'email', type: 'email', icon: <FaEnvelope />, placeholder: 'Enter your email' },
+            ].map(field => (
+              <div key={field.key}>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{field.label}</label>
+                <div className="relative">
+                  <span className="absolute left-3 top-3.5 text-gray-400">{field.icon}</span>
+                  <input
+                    type={field.type}
+                    value={form[field.key]}
+                    onChange={e => setForm({ ...form, [field.key]: e.target.value })}
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    placeholder={field.placeholder}
+                    required
+                  />
+                </div>
               </div>
-            </div>
+            ))}
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
-              <div className="relative">
-                <FaEnvelope className="absolute left-3 top-3 text-gray-400" />
-                <motion.input
-                  type="email"
-                  value={form.email}
-                  onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                  placeholder="Enter your email"
-                  required
-                  whileFocus={{ scale: 1.02 }}
-                />
+            {[
+              { label: 'Password', key: 'password', show: showPassword, toggle: () => setShowPassword(s => !s), placeholder: 'At least 6 characters' },
+              { label: 'Confirm Password', key: 'confirmPassword', show: showConfirmPassword, toggle: () => setShowConfirmPassword(s => !s), placeholder: 'Repeat your password' },
+            ].map(field => (
+              <div key={field.key}>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{field.label}</label>
+                <div className="relative">
+                  <FaLock className="absolute left-3 top-3.5 text-gray-400" />
+                  <input
+                    type={field.show ? 'text' : 'password'}
+                    value={form[field.key]}
+                    onChange={e => setForm({ ...form, [field.key]: e.target.value })}
+                    className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    placeholder={field.placeholder}
+                    required
+                  />
+                  <button type="button" onClick={field.toggle} className="absolute right-3 top-3.5 text-gray-400 hover:text-gray-600">
+                    {field.show ? <FaEyeSlash /> : <FaEye />}
+                  </button>
+                </div>
               </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
-              <div className="relative">
-                <FaLock className="absolute left-3 top-3 text-gray-400" />
-                <motion.input
-                  type={showPassword ? "text" : "password"}
-                  value={form.password}
-                  onChange={(e) => setForm({ ...form, password: e.target.value })}
-                  className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                  placeholder="Create a password"
-                  required
-                  whileFocus={{ scale: 1.02 }}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
-                >
-                  {showPassword ? <FaEyeSlash /> : <FaEye />}
-                </button>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Confirm Password</label>
-              <div className="relative">
-                <FaLock className="absolute left-3 top-3 text-gray-400" />
-                <motion.input
-                  type={showConfirmPassword ? "text" : "password"}
-                  value={form.confirmPassword}
-                  onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })}
-                  className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                  placeholder="Confirm your password"
-                  required
-                  whileFocus={{ scale: 1.02 }}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
-                >
-                  {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
-                </button>
-              </div>
-            </div>
+            ))}
 
             <motion.button
               type="submit"
-              className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 font-semibold text-lg"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+              disabled={loading}
+              whileHover={{ scale: loading ? 1 : 1.02 }}
+              whileTap={{ scale: loading ? 1 : 0.98 }}
+              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all font-semibold text-lg flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
             >
-              Create Account
+              {loading && <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />}
+              {loading ? 'Creating Account...' : 'Create Account'}
             </motion.button>
           </form>
 
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.5 }}
-            className="mt-6 text-center"
-          >
-            <p className="text-gray-600">
-              Already have an account?{' '}
-              <Link to="/login" className="text-blue-600 hover:text-blue-700 font-semibold transition-colors duration-200">
-                Sign in here
-              </Link>
-            </p>
-          </motion.div>
+          <p className="mt-6 text-center text-gray-600">
+            Already have an account?{' '}
+            <Link to="/login" className="text-blue-600 hover:text-blue-700 font-semibold">Sign in here</Link>
+          </p>
         </motion.div>
       </div>
     </div>
