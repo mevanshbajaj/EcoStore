@@ -1,7 +1,7 @@
 import { useEffect, useState, useContext } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { FaBoxOpen, FaReceipt, FaTruck, FaCheckCircle, FaTimesCircle, FaClock, FaChevronDown, FaChevronUp } from 'react-icons/fa';
+import { FaBoxOpen, FaReceipt, FaTruck, FaCheckCircle, FaTimesCircle, FaClock, FaChevronDown, FaChevronUp, FaMapMarkerAlt, FaCalendarAlt, FaCreditCard, FaMoneyBillWave } from 'react-icons/fa';
 import { api } from '../services/api';
 import { CartContext } from '../context/CartContext';
 import toast from 'react-hot-toast';
@@ -34,10 +34,20 @@ const OrderCard = ({ order, onCancel }) => {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 flex-wrap">
           <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold ${status.color}`}>
             {status.icon} {status.label}
           </span>
+          {order.paymentStatus === 'paid' && (
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">
+              <FaCreditCard className="text-xs" /> Paid
+            </span>
+          )}
+          {order.paymentMethod === 'COD' && (
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-700">
+              <FaMoneyBillWave className="text-xs" /> COD
+            </span>
+          )}
           <span className="text-lg font-bold text-green-600">₹{order.total.toFixed(2)}</span>
         </div>
 
@@ -86,8 +96,29 @@ const OrderCard = ({ order, onCancel }) => {
                 </div>
               ))}
 
+              {order.shippingAddress && (
+                <div className="pt-4 border-t border-gray-100">
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                    <FaMapMarkerAlt className="text-green-500" /> Delivery Address
+                  </p>
+                  <p className="text-sm text-gray-700 font-medium">{order.shippingAddress.name} · {order.shippingAddress.phone}</p>
+                  <p className="text-sm text-gray-500">{order.shippingAddress.addressLine1}{order.shippingAddress.addressLine2 ? `, ${order.shippingAddress.addressLine2}` : ''}</p>
+                  <p className="text-sm text-gray-500">{order.shippingAddress.city}, {order.shippingAddress.state} – {order.shippingAddress.pincode}</p>
+                </div>
+              )}
+
+              {order.estimatedDelivery && (
+                <div className="flex items-center gap-2 text-sm text-green-700 bg-green-50 rounded-xl px-3 py-2">
+                  <FaCalendarAlt className="flex-shrink-0" />
+                  <span>Estimated delivery: <strong>{new Date(order.estimatedDelivery).toLocaleDateString('en-IN', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}</strong></span>
+                </div>
+              )}
+
               <div className="pt-4 border-t border-gray-100 space-y-1.5 text-sm text-gray-600">
                 <div className="flex justify-between"><span>Subtotal</span><span>₹{order.subtotal.toFixed(2)}</span></div>
+                {order.discount > 0 && (
+                  <div className="flex justify-between text-green-600"><span>Discount</span><span>- ₹{order.discount.toFixed(2)}</span></div>
+                )}
                 <div className="flex justify-between"><span>Tax (8%)</span><span>₹{order.tax.toFixed(2)}</span></div>
                 <div className="flex justify-between">
                   <span>Shipping</span>

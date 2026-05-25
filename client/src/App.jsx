@@ -20,6 +20,8 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Profile from './pages/Profile';
 import Orders from './pages/Orders';
+import Checkout from './pages/Checkout';
+import OrderSuccess from './pages/OrderSuccess';
 import Settings from './pages/Settings';
 import AdminDashboard from './pages/AdminDashboard';
 
@@ -50,6 +52,8 @@ function App() {
               <Route path="/wishlist" element={<ProtectedRoute><PageParallax><Wishlist /></PageParallax></ProtectedRoute>} />
               <Route path="/profile" element={<ProtectedRoute><PageParallax><Profile /></PageParallax></ProtectedRoute>} />
               <Route path="/orders" element={<ProtectedRoute><PageParallax><Orders /></PageParallax></ProtectedRoute>} />
+              <Route path="/checkout" element={<ProtectedRoute><PageParallax><Checkout /></PageParallax></ProtectedRoute>} />
+              <Route path="/order-success" element={<ProtectedRoute><OrderSuccess /></ProtectedRoute>} />
               <Route path="/settings" element={<ProtectedRoute><PageParallax><Settings /></PageParallax></ProtectedRoute>} />
 
               {/* Admin-only route */}

@@ -1,35 +1,17 @@
-import { useContext, useState } from 'react';
+import { useContext } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import { CartContext } from '../context/CartContext';
-import { FaTrash, FaPlus, FaMinus, FaShoppingBag, FaArrowLeft, FaCheckCircle } from 'react-icons/fa';
-import { api } from '../services/api';
-import toast from 'react-hot-toast';
+import { FaTrash, FaPlus, FaMinus, FaShoppingBag, FaArrowLeft, FaLock } from 'react-icons/fa';
 
 const Cart = () => {
-  const { cart, removeFromCart, updateQuantity, clearCart } = useContext(CartContext);
-  const [checkingOut, setCheckingOut] = useState(false);
+  const { cart, removeFromCart, updateQuantity } = useContext(CartContext);
   const navigate = useNavigate();
 
   const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const tax = subtotal * 0.08;
   const shipping = subtotal > 500 ? 0 : 50;
   const finalTotal = subtotal + tax + shipping;
-
-  const handleCheckout = async () => {
-    if (cart.length === 0) return;
-    setCheckingOut(true);
-    try {
-      await api.post('/api/orders', {});
-      clearCart();
-      toast.success('Order placed successfully! 🎉');
-      navigate('/orders');
-    } catch (err) {
-      toast.error(err.message || 'Checkout failed. Please try again.');
-    } finally {
-      setCheckingOut(false);
-    }
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8">
@@ -156,18 +138,13 @@ const Cart = () => {
                 </div>
 
                 <motion.button
-                  onClick={handleCheckout}
-                  disabled={checkingOut}
-                  whileHover={{ scale: checkingOut ? 1 : 1.02 }}
-                  whileTap={{ scale: checkingOut ? 1 : 0.98 }}
-                  className="w-full bg-gradient-to-r from-green-600 to-green-700 text-white py-4 px-6 rounded-xl hover:from-green-700 hover:to-green-800 transition-all font-semibold text-lg shadow-lg hover:shadow-xl mb-4 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                  onClick={() => navigate('/checkout')}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="w-full bg-gradient-to-r from-green-600 to-green-700 text-white py-4 px-6 rounded-xl hover:from-green-700 hover:to-green-800 transition-all font-semibold text-lg shadow-lg hover:shadow-xl mb-4 flex items-center justify-center gap-2"
                 >
-                  {checkingOut ? (
-                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  ) : (
-                    <FaCheckCircle />
-                  )}
-                  {checkingOut ? 'Placing Order...' : 'Place Order (COD)'}
+                  <FaLock />
+                  Proceed to Checkout
                 </motion.button>
 
                 <Link

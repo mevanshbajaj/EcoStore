@@ -8,8 +8,6 @@ export const WishlistContext = createContext();
 export const WishlistProvider = ({ children }) => {
   const [wishlist, setWishlist] = useState([]);
   const { user } = useContext(AuthContext);
-
-  // Fetch from backend if logged in, otherwise from localStorage
   const fetchWishlist = useCallback(async () => {
     if (user?.token) {
       try {
